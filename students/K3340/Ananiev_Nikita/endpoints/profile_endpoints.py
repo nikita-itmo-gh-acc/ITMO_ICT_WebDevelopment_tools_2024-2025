@@ -13,20 +13,21 @@ from typing_extensions import TypedDict
 profile_router = APIRouter()
 
 @profile_router.get("/profile_list", response_model=list[ProfilePublic])
-@auth_checker
-async def get_profile_list(credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
-                           session=Depends(get_session)):
+async def get_profile_list(session=Depends(get_session)):
     found = session.exec(select(Profile)).all()
     return found
 
 @profile_router.get("/profile/{id}", response_model=ProfilePublic)
-async def get_profile(profile_id: int, session=Depends(get_session)):
+@auth_checker
+async def get_profile(profile_id: int, credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
+                      session=Depends(get_session)):
     return get_object_by_id(profile_id, Profile, session)
 
 
 @profile_router.post("/profile")
 @auth_checker
-async def create_profile(profile: ProfileDefault, session=Depends(get_session)) -> TypedDict('Response', {"status": int, "created": Profile}):
+async def create_profile(profile: ProfileDefault, credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
+                         session=Depends(get_session)) -> TypedDict('Response', {"status": int, "created": Profile}):
     profile = Profile.model_validate(profile)
     session.add(profile)
     session.commit()
@@ -35,7 +36,9 @@ async def create_profile(profile: ProfileDefault, session=Depends(get_session)) 
 
 
 @profile_router.delete("/profile/{id}")
-async def delete_profile(profile_id: int, session=Depends(get_session)) -> TypedDict('Response', {"status": int, "msg": str}):
+@auth_checker
+async def delete_profile(profile_id: int, credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
+                         session=Depends(get_session)) -> TypedDict('Response', {"status": int, "msg": str}):
     profile = get_object_by_id(profile_id, Profile, session)
     session.delete(profile)
     session.commit()
@@ -43,7 +46,9 @@ async def delete_profile(profile_id: int, session=Depends(get_session)) -> Typed
 
 
 @profile_router.patch("/profile/{id}")
-async def update_profile(profile_id: int, upd_profile: ProfilePatch, session=Depends(get_session)) -> TypedDict('Response', {"status": int, "updated": Profile}):
+@auth_checker
+async def update_profile(profile_id: int, upd_profile: ProfilePatch, credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
+                         session=Depends(get_session)) -> TypedDict('Response', {"status": int, "updated": Profile}):
     profile = get_object_by_id(profile_id, Profile, session)
     upd_data = upd_profile.model_dump(exclude_unset=True)
     profile = upd_model(profile, upd_data, session)

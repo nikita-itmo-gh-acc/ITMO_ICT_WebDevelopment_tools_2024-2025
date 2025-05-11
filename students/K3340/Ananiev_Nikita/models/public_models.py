@@ -1,5 +1,5 @@
 from typing import Optional
-from .default_models import ProfileDefault, BookDefault, ShareRequestDefault
+from .default_models import ProfileDefault, BookDefault, ShareRequestDefault, BookInfoDefault, TagDefault
 from sqlmodel import SQLModel
 from datetime import date
 
@@ -31,3 +31,14 @@ class ShareRequestPatch(SQLModel):
 class BookPublic(BookDefault):
     id: int
     owner: ProfileDefault | None = None
+
+
+class BookInfoPublic(BookInfoDefault):
+    id: int
+    instances: Optional[list[BookDefault]] = []
+    tags: Optional[list[TagDefault]] = []
+
+
+class TagPublic(TagDefault):
+    id: int
+    books: Optional[list[BookInfoDefault]] = []

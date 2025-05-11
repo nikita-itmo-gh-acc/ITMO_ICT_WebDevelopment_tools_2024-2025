@@ -24,7 +24,7 @@ def get_password_hash(password: str) -> bytes:
 @auth_router.post('/login')
 async def login(profile: AuthModel, session = Depends(get_session)) -> TypedDict('Response', {"status": int, "jwt_token": str}):
     found = session.exec(select(Profile).where(Profile.email == profile.email)).first()
-    if not profile:
+    if not found:
         raise HTTPException(status_code=404, detail="User not found")
     password_hash = get_password_hash(profile.password)
     if found.password != password_hash.decode():
